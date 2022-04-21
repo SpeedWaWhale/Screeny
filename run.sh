@@ -1,1 +1,1 @@
-echo "Hello"
+python3 Screeny.py
