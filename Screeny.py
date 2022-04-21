@@ -19,15 +19,12 @@ GT_Old = gt1151.GT_Development()
 print("init and Clear")
 epd.init(epd.FULL_UPDATE)
 gt.GT_Init()
-epd.Clear(0xFF)
+#epd.Clear(0xFF)
 
 image = Image.new('1', (epd.width, epd.height), 0)
 epd.displayPartBaseImage(epd.getbuffer(image))
 DrawImage = ImageDraw.Draw(image)
 epd.init(epd.PART_UPDATE)
 
-while True:
-    print("ok")
-    DrawImage.rectangle((0, 20, 200, 34), fill = 1)
-    epd.init(epd.PART_UPDATE)
-    time.sleep(1)
+DrawImage.rectangle((0, 20, 200, 34), fill = 1)
+epd.init(epd.PART_UPDATE)
