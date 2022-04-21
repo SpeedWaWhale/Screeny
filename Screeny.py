@@ -12,8 +12,8 @@ gt = gt1151.GT1151()
 
 def clear_screen():
     print("init and Clear")
-    epd.init(epd.FULL_UPDATE)
-    gt.GT_Init()
+    # epd.init(epd.FULL_UPDATE)
+    # gt.GT_Init()
     #epd.Clear(0xFF)
 
 def draw_text():
@@ -29,4 +29,4 @@ def stop_screen():
 
 clear_screen()
 draw_text()
-sleep_screen()
+#sleep_screen()
