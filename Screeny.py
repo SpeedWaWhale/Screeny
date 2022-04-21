@@ -21,7 +21,7 @@ epd.init(epd.FULL_UPDATE)
 gt.GT_Init()
 #epd.Clear(0xFF)
 
-image = Image.new('1', (epd.width, epd.height), 0)
+image = Image.new('1', (epd.width, epd.height), 255)
 epd.displayPartBaseImage(epd.getbuffer(image))
 DrawImage = ImageDraw.Draw(image)
 epd.init(epd.PART_UPDATE)
