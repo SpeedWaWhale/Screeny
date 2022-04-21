@@ -29,6 +29,6 @@ def sleep_screen():
 def stop_screen():
     epd.Dev_exit()
 
-clear_screen()
+#clear_screen()
 draw_text()
-sleep_screen()
+#sleep_screen()
