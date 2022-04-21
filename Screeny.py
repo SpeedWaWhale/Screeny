@@ -28,5 +28,5 @@ epd.init(epd.PART_UPDATE)
 
 while True:
     print("ok")
-    draw.rectangle((0, 10, 200, 34), fill = 0)
+    DrawImage.rectangle((0, 10, 200, 34), fill = 0)
     time.sleep(1)
