@@ -9,7 +9,7 @@ gt = gt1151.GT1151()
 GT_Dev = gt1151.GT_Development()
 GT_Old = gt1151.GT_Development()
 
-logging.info("init and Clear")
+print("init and Clear")
 epd.init(epd.FULL_UPDATE)
 gt.GT_Init()
 epd.Clear(0xFF)
