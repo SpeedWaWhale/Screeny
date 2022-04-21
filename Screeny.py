@@ -17,11 +17,9 @@ def clear_screen():
     #epd.Clear(0xFF)
 
 def draw_text():
-    font15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
-    font24 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 24)
-    canvas = Image.new('RGB',(122,125), "black")
-    epd.displayPartBaseImage(epd.getbuffer(canvas))
-    DrawImage = ImageDraw.Draw(canvas)
+    image = Image.new('1', (epd.width, epd.height), 255)
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, 10, 200, 34), fill = 0)
 
 def sleep_screen():
     epd.sleep()
