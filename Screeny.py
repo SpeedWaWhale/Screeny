@@ -14,7 +14,7 @@ def clear_screen():
     print("init and Clear")
     epd.init(epd.FULL_UPDATE)
     gt.GT_Init()
-    epd.Clear(0xFF)
+    #epd.Clear(0xFF)
 
 def draw_text():
     font15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
@@ -29,6 +29,6 @@ def sleep_screen():
 def stop_screen():
     epd.Dev_exit()
 
-#clear_screen()
+clear_screen()
 draw_text()
-#sleep_screen()
+sleep_screen()
