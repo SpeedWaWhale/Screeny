@@ -20,6 +20,7 @@ def draw_text():
     font15 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
     font24 = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 24)
     canvas = Image.new('RGB',(122,250), "orange")
+    epd.displayPartBaseImage(epd.getbuffer(canvas))
 
 def sleep_screen():
     epd.sleep()
