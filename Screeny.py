@@ -26,5 +26,5 @@ epd.displayPartBaseImage(epd.getbuffer(image))
 DrawImage = ImageDraw.Draw(image)
 epd.init(epd.PART_UPDATE)
 
-DrawImage.rectangle((0, 20, 200, 34), fill = 0)
-epd.init(epd.PART_UPDATE)
+DrawImage.rectangle((0, 20, 200, 34), fill = 1)
+epd.init(epd.FULL_UPDATE)
