@@ -13,4 +13,11 @@ def clear_screen():
     gt.GT_Init()
     epd.Clear(0xFF)
 
+def sleep_screen():
+    epd.sleep()
+
+def stop_screen():
+    epd.Dev_exit()
+
 clear_screen()
+sleep_screen()
