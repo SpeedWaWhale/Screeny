@@ -12,6 +12,12 @@ fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fonts')
 print(fontdir)
 epd = epd2in13_V2.EPD_2IN13_V2()
 gt = gt1151.GT1151()
+GT_Dev = gt1151.GT_Development()
+GT_Old = gt1151.GT_Development()
+
+
+epd.init(epd.FULL_UPDATE)
+gt.GT_Init()
 
 def clear_screen():
     print("init and Clear")
