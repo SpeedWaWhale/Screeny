@@ -19,7 +19,7 @@ GT_Old = gt1151.GT_Development()
 print("init and Clear")
 epd.init(epd.FULL_UPDATE)
 gt.GT_Init()
-#epd.Clear(0xFF)
+epd.Clear(0xFF)
 
 image = Image.new('1', (epd.width, epd.height), 255)
 epd.displayPartBaseImage(epd.getbuffer(image))
