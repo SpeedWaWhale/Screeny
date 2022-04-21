@@ -20,7 +20,7 @@ def clear_screen():
     #epd.Clear(0xFF)
 
 def draw_text():
-    console.log((epd.width, epd.height))
+    print((epd.width, epd.height))
     image = Image.new('1', (epd.width, epd.height), 255)
     draw = ImageDraw.Draw(image)
     draw.rectangle((0, 10, 200, 34), fill = 0)
