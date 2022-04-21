@@ -30,6 +30,7 @@ def draw_text():
     image = Image.new('1', (epd.width, epd.height), 255)
     draw = ImageDraw.Draw(image)
     draw.rectangle((0, 10, 200, 34), fill = 0)
+    epd.init(epd.PART_UPDATE)
 
 def sleep_screen():
     epd.sleep()
