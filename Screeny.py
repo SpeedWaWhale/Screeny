@@ -4,7 +4,7 @@
 from TP_lib import gt1151
 from TP_lib import epd2in13_V2
 from PIL import Image,ImageDraw,ImageFont
-
+import os
 fontdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'fonts')
 
 epd = epd2in13_V2.EPD_2IN13_V2()
