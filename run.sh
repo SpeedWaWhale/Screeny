@@ -1,1 +1,5 @@
-python3 Screeny.py
+#!/usr/bin/env bash
+
+BASEDIR=$(dirname "$0")
+
+python3 $BASEDIR/Screeny.py
