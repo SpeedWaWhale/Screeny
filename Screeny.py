@@ -1,6 +1,10 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+"""
+>>> from wifi import Cell, Scheme
+>>> Cell.all('wlan0')
+"""
 from TP_lib import gt1151
 from TP_lib import epd2in13_V2
 from PIL import Image,ImageDraw,ImageFont,ImageOps
@@ -11,7 +15,8 @@ import requests
 from io import BytesIO
 import datetime
 from functools import partial
-
+import socket   
+from wifi import Cell, Scheme
 flag_t = 1
 
 epd = epd2in13_V2.EPD_2IN13_V2()
@@ -83,21 +88,24 @@ class View():
     def addLayer(self, layer, x, y, mask=None):
         self.mainLayer.paste(layer, (x,y), mask)
 
-    def readPngFromFile(self, layer, path, x, y, resize=False, basewidth=0, rotate=0):
+    def readPngFromFile(self, layer, path, x, y, resize=False, basewidth=0, basehight=0, rotate=0):
         img = Image.open(path).convert("RGBA")
-        return self.readPng(layer, img, x, y, resize, basewidth, rotate)
+        return self.readPng(layer, img, x, y, resize, basewidth, basehight, rotate)
 
-    def readPngFromURL(self, layer, url, x, y, resize=False, basewidth=0, rotate=0):
+    def readPngFromURL(self, layer, url, x, y, resize=False, basewidth=0, basehight=0, rotate=0):
         response = requests.get(url)
         img = Image.open(BytesIO(response.content)).convert("RGBA")
-        self.readPng(layer, img, x, y, resize, basewidth, rotate)
+        self.readPng(layer, img, x, y, resize, basewidth, basehight, rotate)
 
-    def readPng(self, layer, img, x, y, resize=False, basewidth=0, rotate=0):
+    def readPng(self, layer, img, x, y, resize=False, basewidth=0, basehight=0, rotate=0):
         img = img.rotate(rotate)
         if resize:
-            wpercent = (basewidth/float(img.size[0]))
-            hsize = int((float(img.size[1])*float(wpercent)))
-            img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+            if basehight == 0:
+                wpercent = (basewidth/float(img.size[0]))
+                hsize = int((float(img.size[1])*float(wpercent)))
+                img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+            else:
+                img = img.resize((basewidth,basehight), Image.ANTIALIAS)
         layer.paste(img, (x, y), mask=img)
         return img
 
@@ -150,17 +158,17 @@ class BottomMenuView(View):
 
     def drawHomeButton(self, layer):
         offset = 26
-        img =  self.readPngFromFile(layer, os.path.join(picdir, "interface/home.png"), 0, self.epd.height - offset, True, 25, 90)
+        img =  self.readPngFromFile(layer, os.path.join(picdir, "interface/home.png"), 0, self.epd.height - offset, True, 25, 0, 90)
         self.registerAction("home", self.epd.width - 25, self.epd.height - offset, self.epd.width - 25 + img.size[0], self.epd.height - offset + img.size[1], partial(ChangeViewTo, "hub"))
 
     def drawHome2Button(self, layer):
         offset = 100
-        img = self.readPngFromFile(layer, os.path.join(picdir, "interface/home.png"), 0, self.epd.height - offset, True, 25, 90)
+        img = self.readPngFromFile(layer, os.path.join(picdir, "interface/home.png"), 0, self.epd.height - offset, True, 25, 0, 90)
         self.registerAction("home2", self.epd.width - 25, self.epd.height - offset, self.epd.width - 25 + img.size[0], self.epd.height - offset + img.size[1], partial(ChangeViewTo, "home"))
 
     def drawSyncButton(self, layer):
         offset = self.epd.height
-        img = self.readPngFromFile(layer, os.path.join(picdir, "interface/sync.png"), 0, self.epd.height - offset, True, 25, 90)
+        img = self.readPngFromFile(layer, os.path.join(picdir, "interface/sync.png"), 0, self.epd.height - offset, True, 25, 0, 90)
         self.registerAction("refresh", self.epd.width - 25, self.epd.height - offset, self.epd.width - 25 + img.size[0], self.epd.height - offset + img.size[1], ClearView)
 
 
@@ -234,10 +242,72 @@ class ClockView(ComponentView):
         self.draw_text_center(self.viewLayer, text, offsety=5, size=50)
         self.addLayer(self.viewLayer, 0, 0)
 
+class IPView(ComponentView):
+    def draw(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        text = "{}".format(s.getsockname()[0])
+        self.draw_text_center(self.viewLayer, text, offsety=5, size=30)
+        self.addLayer(self.viewLayer, 0, 0)
+
+class WIFIView(ComponentView):
+    def __init__(self, epd, gt, mainLayer):
+        super().__init__(epd, gt, mainLayer)
+        self.cells = list()
+        self.changeViewToAllSSID()
+
+    def changeViewToSSID(self, index):
+        self.currentView = partial(self.detailSSID, index)
+    
+    def changeViewToAllSSID(self):
+        self.currentView = self.allSSID
+
+    def detailSSID(self, index):
+        self.actions = {}
+        self.viewBuffer.rectangle((0, 0, self.viewLayer.size[0], self.viewLayer.size[1]), fill = (255, 255, 255))
+        font = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
+        cell = self.cells[index]
+        #line = "SSID: {}\nEncryption: {}\nSignal: {} - Quality: {}\nChannel: {}".format(cell.ssid, cell.encryption_type, cell.signal, cell.quality, cell.frequency, cell.channel)
+        lines = [
+            "SSID: {}".format(cell.ssid),
+            "Encryption: {}".format(cell.encryption_type),
+            "Signal: {} - Quality: {}".format(cell.signal, cell.quality),
+            "Frequency: {} - Channel: {}".format(cell.frequency, cell.channel),
+            "[BACK]"
+        ]
+        counter = 0
+        for line in lines:
+            wi, hi = font.getsize(line)
+            self.draw_text_at(self.viewLayer, line, counter * hi + 2, self.viewLayer.size[1] - wi - 2, size=15)
+            if line == "[BACK]":
+                self.registerAction("back_all_ssid", counter * hi, self.viewLayer.size[1] - wi, counter * hi + hi, self.viewLayer.size[1], self.changeViewToAllSSID)
+            counter = counter + 1
+        
+
+    def allSSID(self):
+        self.viewBuffer.rectangle((0, 0, self.viewLayer.size[0], self.viewLayer.size[1]), fill = (255, 255, 255))
+        self.actions = {}
+        font = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
+        counter = 0
+        self.cells = list(Cell.all('wlan0'))
+        for cell in self.cells:
+            if counter == 5:
+                break
+            line = "{} {} {}".format(cell.ssid, cell.signal, cell.quality)
+            wi, hi = font.getsize(line)
+            self.draw_text_at(self.viewLayer, line, counter * hi + 2, self.viewLayer.size[1] - wi - 2, size=15)
+            #self.draw_rect(self.viewBuffer, (counter * hi, self.viewLayer.size[1] - wi, counter * hi + hi, self.viewLayer.size[1]), outline = 0, width=2)
+            self.registerAction("view_wifi_"+str(counter), counter * hi, self.viewLayer.size[1] - wi, counter * hi + hi, self.viewLayer.size[1], partial(self.changeViewToSSID, counter))
+            counter = counter + 1
+
+    def draw(self):
+        self.currentView()
+        self.addLayer(self.viewLayer, 0, 0)
+
 class HUBView(View):
     def __init__(self, epd, gt, mainLayer):
         super().__init__(epd, gt, mainLayer)
-        self.hub = [{"name": "Clock", "icon": "interface/clock.png", "view": "clock"},{"name": "Crypto", "icon": "currency/dollar.png", "view": "crypto"} ]
+        self.hub = [{"name": "Clock", "icon": "interface/clock.png", "view": "clock"},{"name": "Crypto", "icon": "currency/dollar.png", "view": "crypto"}, {"name": "IP", "icon": "interface/tree.png", "view": "ip"},  {"name": "WIFI", "icon": "interface/signal.png", "view": "wifi"} ]
         self.index = 0
         self.viewLayer = Image.new("RGBA", (epd.width - 25, epd.height), (255, 255, 255))
         self.viewBuffer = ImageDraw.Draw(self.viewLayer)
@@ -245,14 +315,12 @@ class HUBView(View):
     def drawBlock(self, i):
         x = 15
         y = int(self.viewLayer.size[1] - 40) - i * 40
-        if i > 0:
-            y = y - 15
         name = self.hub[i]["name"]
         font = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 15)
         wi, hi = font.getsize(name)
-        img = self.readPngFromFile(self.viewLayer, os.path.join(picdir, self.hub[i]["icon"]), x, y, True, 35, 90)
+        img = self.readPngFromFile(self.viewLayer, os.path.join(picdir, self.hub[i]["icon"]), x, y, True, 35, 35, 90)
         self.draw_rect(self.viewBuffer, (x, y, x+img.size[0], y+img.size[1]), outline = 0, width=2)
-        self.draw_text_at(self.viewLayer, name,x + img.size[0] + 1, y - int(img.size[1]/2) + int(hi/2) - 1, size=15)
+        #self.draw_text_at(self.viewLayer, name,x + img.size[0] + 1, y, size=15, offsetx=0, offsety=0)
         self.registerAction(name, x, y, x+img.size[0], y+img.size[1], partial(ChangeViewTo, self.hub[i]["view"]))
 
 
@@ -291,6 +359,8 @@ ViewManager["views"]["home2"] = Home2View(epd, gt, image)
 ViewManager["views"]["hub"] = HUBView(epd, gt, image)
 ViewManager["views"]["clock"] = ClockView(epd, gt, image)
 ViewManager["views"]["crypto"] = CryptoView(epd, gt, image)
+ViewManager["views"]["ip"] = IPView(epd, gt, image)
+ViewManager["views"]["wifi"] = WIFIView(epd, gt, image)
 ViewManager["currentView"] = ViewManager["views"]["hub"]
 
 refreshTime = 0
